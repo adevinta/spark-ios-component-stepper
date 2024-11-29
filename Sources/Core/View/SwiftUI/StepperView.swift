@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SparkTheming
+import SparkButton
 @_spi(SI_SPI) import SparkCommon
 
 /// The SwiftUI version for the stepper

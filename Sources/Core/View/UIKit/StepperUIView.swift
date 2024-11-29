@@ -8,6 +8,7 @@
 
 import UIKit
 import SparkTheming
+import SparkButton
 @_spi(SI_SPI) import SparkCommon
 
 /// The UIKit version for the stepper.
