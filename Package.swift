@@ -29,6 +29,11 @@ let package = Package(
            url: "https://github.com/adevinta/spark-ios-theming.git",
            // path: "../spark-ios-theming"
            /*version*/ "0.0.1"..."999.999.999"
+       ),
+       .package(
+           url: "https://github.com/adevinta/spark-ios-component-button.git",
+           // path: "../spark-ios-component-button"
+           /*version*/ "0.0.1"..."999.999.999"
        )
     ],
     targets: [
@@ -42,6 +47,10 @@ let package = Package(
                 .product(
                     name: "SparkTheming",
                     package: "spark-ios-theming"
+                ),
+                .product(
+                    name: "SparkButton",
+                    package: "spark-ios-component-button"
                 )
             ],
             path: "Sources/Core"
