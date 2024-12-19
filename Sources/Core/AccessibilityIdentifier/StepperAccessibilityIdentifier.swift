@@ -8,8 +8,6 @@
 
 /// The accessibility identifiers for the stepper.
 public enum StepperAccessibilityIdentifier {
-
-    // MARK: - Properties
-
-    public static let view = "spark-stepper-view"
+    public static let decrementButton = "spark-stepper-decrement-button"
+    public static let incrementButton = "spark-stepper-increment-button"
 }

@@ -57,6 +57,8 @@ final class StepperControlViewModel<V>: ObservableObject where V: BinaryFloating
 
     private var formattedText: () -> String = { "" }
 
+    private(set) var interval: TimeInterval = 0.5
+
     init(
         theme: any Theme,
         value: V,
@@ -116,12 +118,16 @@ final class StepperControlViewModel<V>: ObservableObject where V: BinaryFloating
         self.checkMinMaxValue()
     }
 
-    func increment() {
+    @discardableResult
+    func increment() -> V {
         self.value = min(self.bounds.upperBound, self.value.advanced(by: self.step))
+        return self.value
     }
 
-    func decrement() {
+    @discardableResult
+    func decrement() -> V {
         self.value = max(self.bounds.lowerBound, self.value.advanced(by: -self.step))
+        return self.value
     }
 
     private func checkMinMaxValue() {
@@ -177,5 +183,21 @@ final class StepperControlViewModel<V>: ObservableObject where V: BinaryFloating
 
     private func resetDim() {
         self.dim = self.isEnabled ? self.theme.dims.none : self.theme.dims.dim3
+    }
+
+    func getDecrementAccessibilityLabel() -> String {
+        return "Value: \(self.text), Decrement"
+    }
+
+    func getIncrementAccessibilityLabel() -> String {
+        return "Value: \(self.text), Increment"
+    }
+
+    func resetInterval() {
+        self.interval = 0.5
+    }
+
+    func updateInterval() {
+        self.interval = max(0.035, self.interval * 0.85)
     }
 }

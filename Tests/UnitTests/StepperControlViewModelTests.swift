@@ -42,7 +42,7 @@ final class StepperControlViewModelTests: XCTestCase {
         return publishers
     }
 
-    func test_init_double() {
+    func test_init() {
         // GIVEN
         let initialValue: Double = 5.0
         let step: Double = 1.0
@@ -66,6 +66,7 @@ final class StepperControlViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isMaxValue, "isMaxValue should be false for initial value")
         XCTAssertEqual(viewModel.dim, 1.0, "Initial dim should be 1.0")
         XCTAssertTrue(viewModel.isEnabled, "Stepper should be enabled by default")
+        XCTAssertEqual(viewModel.interval, 0.5, "Interval should be 0.5")
 
         XCTAssertIdentical(viewModel.textFont as? TypographyFontTokenGeneratedMock, self.theme.typography.body1 as? TypographyFontTokenGeneratedMock, "Text font should be set to theme's body1")
         XCTAssertIdentical(viewModel.textColor as? ColorTokenGeneratedMock, self.theme.colors.base.onSurface as? ColorTokenGeneratedMock, "Text color should be set to theme's onSurface")
@@ -88,7 +89,7 @@ final class StepperControlViewModelTests: XCTestCase {
         XCTAssertEqual(publishers.value.sinkCount, 1, "$value should have been called once")
     }
 
-    func test_init_float() {
+    func test_init_withFormat() {
         // GIVEN
         let initialValue = Float.greatestFiniteMagnitude
         let step: Float = 0.6
@@ -99,7 +100,8 @@ final class StepperControlViewModelTests: XCTestCase {
             theme: self.theme,
             value: initialValue,
             step: step,
-            in: bounds
+            in: bounds,
+            format: FloatingPointFormatStyle<Float>.Currency(code: "USD", locale: .init(identifier: "en_US"))
         )
 
         let publishers = self.createPublishers(viewModel: viewModel)
@@ -108,11 +110,12 @@ final class StepperControlViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.value, initialValue, "Initial value should be set correctly")
         XCTAssertEqual(viewModel.step, step, "Step should be set correctly")
         XCTAssertEqual(viewModel.bounds, bounds, "Bounds should be set correctly")
-        XCTAssertEqual(viewModel.text, "3.4028235e+38", "Text should reflect the initial value")
+        XCTAssertEqual(viewModel.text, "$340,282,346,638,528,860,000,000,000,000,000,000,000.00", "Text should reflect the initial value")
         XCTAssertFalse(viewModel.isMinValue, "isMinValue should be false for initial value")
         XCTAssertTrue(viewModel.isMaxValue, "isMaxValue should be true for initial value")
         XCTAssertEqual(viewModel.dim, 1.0, "Initial dim should be 1.0")
         XCTAssertTrue(viewModel.isEnabled, "Stepper should be enabled by default")
+        XCTAssertEqual(viewModel.interval, 0.5, "Interval should be 0.5")
 
         // THEN - Publishers
         XCTAssertEqual(publishers.text.sinkCount, 1, "$text should have been called once")
@@ -143,10 +146,11 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.increment()
+        let newValue = viewModel.increment()
 
         // THEN
-        XCTAssertEqual(viewModel.value, 1.0, "Value should be incremented to 6.0")
+        XCTAssertEqual(newValue, 1.0, "newValue should be 1.0")
+        XCTAssertEqual(viewModel.value, 1.0, "Value should be incremented to 1.0")
         XCTAssertEqual(viewModel.text, "1.0", "Text should reflect the incremented value")
         XCTAssertFalse(viewModel.isMinValue, "isMinValue should be false after increment")
         XCTAssertFalse(viewModel.isMaxValue, "isMaxValue should be false after increment")
@@ -180,10 +184,11 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.increment()
+        let newValue = viewModel.increment()
 
         // THEN
-        XCTAssertEqual(viewModel.value, 10.0, "Value should be incremented to 6.0")
+        XCTAssertEqual(newValue, 10.0, "newValue should be 10.0")
+        XCTAssertEqual(viewModel.value, 10.0, "Value should be incremented to 10.0")
         XCTAssertEqual(viewModel.text, "10.0", "Text should reflect the incremented value")
         XCTAssertFalse(viewModel.isMinValue, "isMinValue should be false after increment")
         XCTAssertTrue(viewModel.isMaxValue, "isMaxValue should be true after increment")
@@ -217,10 +222,11 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.increment()
+        let newValue = viewModel.increment()
 
         // THEN
-        XCTAssertEqual(viewModel.value, 10.0, "Value should be incremented to 6.0")
+        XCTAssertEqual(newValue, 10.0, "newValue should be 10.0")
+        XCTAssertEqual(viewModel.value, 10.0, "Value should be incremented to 10.0")
         XCTAssertEqual(viewModel.text, "10.0", "Text should reflect the incremented value")
         XCTAssertFalse(viewModel.isMinValue, "isMinValue should be false after increment")
         XCTAssertTrue(viewModel.isMaxValue, "isMaxValue should be true after increment")
@@ -254,9 +260,10 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.increment()
+        let newValue = viewModel.increment()
 
         // THEN
+        XCTAssertEqual(newValue, 10.0, "newValue should be 10.0")
         XCTAssertEqual(viewModel.value, 10.0, "Value should be incremented to 10.0")
         XCTAssertEqual(viewModel.text, "10.0", "Text should reflect the incremented value")
         XCTAssertFalse(viewModel.isMinValue, "isMinValue should be false after increment")
@@ -291,9 +298,10 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.decrement()
+        let newValue = viewModel.decrement()
 
         // THEN
+        XCTAssertEqual(newValue, 9.0, "newValue should be 9.0")
         XCTAssertEqual(viewModel.value, 9.0, "Value should be decremented to 9.0")
         XCTAssertEqual(viewModel.text, "9.0", "Text should reflect the decremented value")
         XCTAssertFalse(viewModel.isMinValue, "isMinValue should be false after decrement")
@@ -328,9 +336,10 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.decrement()
+        let newValue = viewModel.decrement()
 
         // THEN
+        XCTAssertEqual(newValue, 0.0, "newValue should be 0.0")
         XCTAssertEqual(viewModel.value, 0.0, "Value should be decremented to 0.0")
         XCTAssertEqual(viewModel.text, "0.0", "Text should reflect the decremented value")
         XCTAssertTrue(viewModel.isMinValue, "isMinValue should be true after decrement")
@@ -365,9 +374,10 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.decrement()
+        let newValue = viewModel.decrement()
 
         // THEN
+        XCTAssertEqual(newValue, 0.0, "newValue should be 0.0")
         XCTAssertEqual(viewModel.value, 0.0, "Value should be decremented to 0.0")
         XCTAssertEqual(viewModel.text, "0.0", "Text should reflect the decremented value")
         XCTAssertTrue(viewModel.isMinValue, "isMinValue should be true after decrement")
@@ -402,9 +412,10 @@ final class StepperControlViewModelTests: XCTestCase {
         publishers.reset()
 
         // WHEN
-        viewModel.decrement()
+        let newValue = viewModel.decrement()
 
         // THEN
+        XCTAssertEqual(newValue, 0.0, "newValue should be 0.0")
         XCTAssertEqual(viewModel.value, 0.0, "Value should be decremented to 0.0")
         XCTAssertEqual(viewModel.text, "0.0", "Text should reflect the decremented value")
         XCTAssertTrue(viewModel.isMinValue, "isMinValue should be true after decrement")
@@ -840,6 +851,215 @@ final class StepperControlViewModelTests: XCTestCase {
         XCTAssertFalse(publishers.isMaxValue.sinkCalled, "$isMaxValue should not have been called")
         XCTAssertFalse(publishers.dim.sinkCalled, "$dim should not have been called")
         XCTAssertFalse(publishers.value.sinkCalled, "$value should not have been called")
+    }
+
+    func test_accessibility_decrement() {
+        // GIVEN
+        let initialValue: Double = 1.0
+        let step: Double = 1.0
+        let initialBounds: ClosedRange<Double> = 0.0...10.0
+
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: step,
+            in: initialBounds
+        )
+        let publishers = self.createPublishers(viewModel: viewModel)
+        publishers.reset()
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getDecrementAccessibilityLabel(), "Value: 1.0, Decrement")
+    }
+
+    func test_accessibility_decrement_customFormat() {
+        // GIVEN
+        let initialValue: Double = 1.0
+        let step: Double = 1.0
+        let initialBounds: ClosedRange<Double> = 0.0...10.0
+
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: step,
+            in: initialBounds,
+            format: FloatingPointFormatStyle<Double>.Currency(code: "USD", locale: .init(identifier: "en_US"))
+        )
+        let publishers = self.createPublishers(viewModel: viewModel)
+        publishers.reset()
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getDecrementAccessibilityLabel(), "Value: $1.00, Decrement")
+    }
+
+    func test_accessibility_increment() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let step: Double = 1.0
+        let initialBounds: ClosedRange<Double> = 0.0...10.0
+
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: step,
+            in: initialBounds
+        )
+        let publishers = self.createPublishers(viewModel: viewModel)
+        publishers.reset()
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getIncrementAccessibilityLabel(), "Value: 4.0, Increment")
+    }
+
+    func test_accessibility_increment_customFormat() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let step: Double = 1.0
+        let initialBounds: ClosedRange<Double> = 0.0...10.0
+
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: step,
+            in: initialBounds,
+            format: FloatingPointFormatStyle<Double>.Percent(locale: .init(identifier: "en_US"))
+        )
+        let publishers = self.createPublishers(viewModel: viewModel)
+        publishers.reset()
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getIncrementAccessibilityLabel(), "Value: 400%, Increment")
+    }
+
+    func test_decrementAccessibilityLabel() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10
+        )
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getDecrementAccessibilityLabel(), "Value: 4.0, Decrement")
+    }
+
+    func test_decrementAccessibilityLabel_customFormat() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10,
+            format: FloatingPointFormatStyle<Double>.Percent(locale: .init(identifier: "en_US"))
+        )
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getDecrementAccessibilityLabel(), "Value: 400%, Decrement")
+    }
+
+    func test_incrementAccessibilityLabel() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10
+        )
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getIncrementAccessibilityLabel(), "Value: 4.0, Increment")
+    }
+
+    func test_incrementAccessibilityLabel_customFormat() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10,
+            format: FloatingPointFormatStyle<Double>.Percent(locale: .init(identifier: "en_US"))
+        )
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getIncrementAccessibilityLabel(), "Value: 400%, Increment")
+    }
+
+    func test_updateInterval() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10
+        )
+
+        // WHEN
+        viewModel.updateInterval()
+
+        // THEN
+        XCTAssertEqual(viewModel.interval, 0.425)
+    }
+
+    func test_updateInterval_thrice() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10
+        )
+
+        // WHEN
+        viewModel.updateInterval()
+        viewModel.updateInterval()
+        viewModel.updateInterval()
+
+        // THEN
+        XCTAssertEqual(viewModel.interval, 0.30706249999999996)
+    }
+
+    func test_updateInterval_max() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10
+        )
+
+        // WHEN
+        (0..<100).forEach { _ in
+            viewModel.updateInterval()
+        }
+
+        // THEN
+        XCTAssertEqual(viewModel.interval, 0.035)
+    }
+
+    func test_resetInterval() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: 0.5,
+            in: 0...10
+        )
+        viewModel.updateInterval()
+
+        // WHEN
+        viewModel.resetInterval()
+
+        // THEN
+        XCTAssertEqual(viewModel.interval, 0.5, "Interval should be 0.5")
     }
 }
 
