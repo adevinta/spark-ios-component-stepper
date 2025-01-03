@@ -27,6 +27,8 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
     private let leadingSeparator = UIView()
     private let trailingSeparator = UIView()
 
+    private var decrementLongPressGesture: UILongPressGestureRecognizer?
+    private var incrementLongPressGesture: UILongPressGestureRecognizer?
     private var updateTask: Task<Void, Never>?
 
     /// The stepper's current theme.
@@ -72,7 +74,16 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
     /// A Boolean value that determines whether to repeatedly change the stepper’s value as the user presses and holds a stepper button.
     /// If true, the user pressing and holding on the stepper repeatedly alters value.
     /// The default value for this property is `true`.
-    public var autoRepeat = true
+    public var autoRepeat = true {
+        didSet {
+            guard self.autoRepeat != oldValue else { return }
+            if self.autoRepeat {
+                self.addLongPressGestures()
+            } else {
+                self.removeLongPressGestures()
+            }
+        }
+    }
 
     private var valueSubject = PassthroughSubject<V, Never>()
     /// Value changes are sent to the publisher.
@@ -191,11 +202,26 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
         }), for: .touchUpInside)
 
         // Long press
+        self.addLongPressGestures()
+    }
+
+    private func addLongPressGestures() {
         let decrementLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(decrementLongPress))
         self.decrementButton.addGestureRecognizer(decrementLongPressGesture)
+        self.decrementLongPressGesture = decrementLongPressGesture
 
         let incrementLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(incrementLongPress))
         self.incrementButton.addGestureRecognizer(incrementLongPressGesture)
+        self.incrementLongPressGesture = incrementLongPressGesture
+    }
+
+    private func removeLongPressGestures() {
+        if let decrementLongPressGesture {
+            self.decrementButton.removeGestureRecognizer(decrementLongPressGesture)
+        }
+        if let incrementLongPressGesture {
+            self.incrementButton.removeGestureRecognizer(incrementLongPressGesture)
+        }
     }
 
     @objc
