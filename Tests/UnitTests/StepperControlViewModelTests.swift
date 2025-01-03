@@ -872,6 +872,25 @@ final class StepperControlViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.getDecrementAccessibilityLabel(), "Value: 1.0, Decrement")
     }
 
+    func test_accessibility_decrement_customText() {
+        // GIVEN
+        let initialValue: Double = 1.0
+        let step: Double = 1.0
+        let initialBounds: ClosedRange<Double> = 0.0...10.0
+
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: step,
+            in: initialBounds
+        )
+        let publishers = self.createPublishers(viewModel: viewModel)
+        publishers.reset()
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getDecrementAccessibilityLabel(text: "$1"), "Value: $1, Decrement")
+    }
+
     func test_accessibility_decrement_customFormat() {
         // GIVEN
         let initialValue: Double = 1.0
@@ -909,6 +928,25 @@ final class StepperControlViewModelTests: XCTestCase {
 
         // WHEN - THEN
         XCTAssertEqual(viewModel.getIncrementAccessibilityLabel(), "Value: 4.0, Increment")
+    }
+
+    func test_accessibility_increment() {
+        // GIVEN
+        let initialValue: Double = 4.0
+        let step: Double = 1.0
+        let initialBounds: ClosedRange<Double> = 0.0...10.0
+
+        let viewModel = StepperControlViewModel(
+            theme: self.theme,
+            value: initialValue,
+            step: step,
+            in: initialBounds
+        )
+        let publishers = self.createPublishers(viewModel: viewModel)
+        publishers.reset()
+
+        // WHEN - THEN
+        XCTAssertEqual(viewModel.getIncrementAccessibilityLabel(text: "_4_"), "Value: _4_, Increment")
     }
 
     func test_accessibility_increment_customFormat() {

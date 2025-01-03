@@ -185,12 +185,12 @@ final class StepperControlViewModel<V>: ObservableObject where V: BinaryFloating
         self.dim = self.isEnabled ? self.theme.dims.none : self.theme.dims.dim3
     }
 
-    func getDecrementAccessibilityLabel() -> String {
-        return "Value: \(self.text), Decrement"
+    func getDecrementAccessibilityLabel(text: String? = nil) -> String {
+        return "Value: \(text ?? self.text), Decrement"
     }
 
-    func getIncrementAccessibilityLabel() -> String {
-        return "Value: \(self.text), Increment"
+    func getIncrementAccessibilityLabel(text: String? = nil) -> String {
+        return "Value: \(text ?? self.text), Increment"
     }
 
     func resetInterval() {

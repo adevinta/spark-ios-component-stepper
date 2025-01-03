@@ -121,6 +121,10 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
 
         self.label.textAlignment = .center
         self.label.adjustsFontForContentSizeCategory = true
+        self.label.isAccessibilityElement = false
+
+        self.decrementButton.accessibilityIdentifier = StepperAccessibilityIdentifier.decrementButton
+        self.incrementButton.accessibilityIdentifier = StepperAccessibilityIdentifier.incrementButton
 
         self.addAction(UIAction(handler: { [weak self] _ in
             guard let self else { return }
@@ -192,6 +196,8 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
         self.viewModel.$text.removeDuplicates().subscribe(in: &self.cancellables) { [weak self] newText in
             guard let self else { return }
             self.label.text = newText
+            self.decrementButton.accessibilityLabel = self.viewModel.getDecrementAccessibilityLabel(text: newText)
+            self.incrementButton.accessibilityLabel = self.viewModel.getIncrementAccessibilityLabel(text: newText)
         }
 
         // Text Color
@@ -255,6 +261,9 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
             guard let self,
                   self.value != newValue else { return }
             self.value = newValue
+            let accessibilityValue = newValue.formatted()
+            self.decrementButton.accessibilityValue = accessibilityValue
+            self.incrementButton.accessibilityValue = accessibilityValue
         }
 
         // Dim
