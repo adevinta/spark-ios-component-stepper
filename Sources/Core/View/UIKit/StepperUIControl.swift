@@ -27,6 +27,8 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
     private let leadingSeparator = UIView()
     private let trailingSeparator = UIView()
 
+    private var updateTask: Task<Void, Never>?
+
     /// The stepper's current theme.
     public var theme: Theme {
         get { return self.viewModel.theme }
@@ -63,14 +65,6 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
         get { return self.viewModel.value }
         set {
             self.viewModel.setValue(newValue)
-            switch (self._isTracking, self.isContinuous) {
-            case (false, _):
-                break // valueChanged event should only trigger when isTracking is true same as UIStepper
-            case (true, false): // valueChanged event should not be sent while tracking when isContinuous is false
-                break
-            case (true, true):
-                self.sendActions(for: .valueChanged)
-            }
             self.setNeedsLayout()
         }
     }
@@ -131,14 +125,8 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
             self.valueSubject.send(self.value)
         }), for: .valueChanged)
 
-        self.decrementButton.addAction(.init(handler: { _ in
-            self.viewModel.decrement()
-        }), for: .touchUpInside)
-        self.incrementButton.addAction(.init(handler: { _ in
-            self.viewModel.increment()
-        }), for: .touchUpInside)
-
         self.setupView()
+        self.setButtonsActions()
         self.setupSubscriptions()
     }
 
@@ -189,6 +177,76 @@ public final class StepperUIControl<V>: UIControl where V: BinaryFloatingPoint, 
         let spacing = self.viewModel.theme.layout.spacing.medium
         self.labelLeadingSpacingWidhtConstraint.constant = spacing
         self.labelTrailingSpacingWidhtConstraint.constant = spacing
+    }
+
+    private func setButtonsActions() {
+        // Tap
+        self.decrementButton.addAction(.init(handler: { _ in
+            guard self.viewModel.value != self.viewModel.decrement() else { return }
+            self.sendActions(for: .valueChanged)
+        }), for: .touchUpInside)
+        self.incrementButton.addAction(.init(handler: { _ in
+            guard self.viewModel.value != self.viewModel.increment() else { return }
+            self.sendActions(for: .valueChanged)
+        }), for: .touchUpInside)
+
+        // Long press
+        let decrementLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(decrementLongPress))
+        self.decrementButton.addGestureRecognizer(decrementLongPressGesture)
+
+        let incrementLongPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(incrementLongPress))
+        self.incrementButton.addGestureRecognizer(incrementLongPressGesture)
+    }
+
+    @objc
+    private func decrementLongPress(_ gestureRecognizer: UILongPressGestureRecognizer) {
+        self.startUpdating(gestureRecognizer: gestureRecognizer, isIncrement: false)
+    }
+
+    @objc
+    private func incrementLongPress(_ gestureRecognizer: UILongPressGestureRecognizer) {
+        self.startUpdating(gestureRecognizer: gestureRecognizer, isIncrement: true)
+    }
+
+    private func startUpdating(gestureRecognizer: UILongPressGestureRecognizer, isIncrement: Bool) {
+        if gestureRecognizer.state == .began {
+            self._isTracking = true
+            self.updateTask = Task { @MainActor in
+                await self.updateRepeatedly(isIncrement: isIncrement)
+            }
+        } else if gestureRecognizer.state == .ended {
+            self._isTracking = false
+            self.stopUpdating()
+            if self.isContinuous == false {
+                self.sendActions(for: .valueChanged)
+            }
+        }
+    }
+
+    private func stopUpdating() {
+        self._isTracking = false
+        self.updateTask?.cancel()
+        self.updateTask = nil
+        self.viewModel.resetInterval()
+    }
+
+    private func updateRepeatedly(isIncrement: Bool) async {
+        while self._isTracking {
+            let oldValue = self.value
+            self.value = isIncrement ? self.viewModel.increment() : self.viewModel.decrement()
+            if oldValue == self.value {
+                self.stopUpdating()
+            } else if self.isContinuous {
+                self.sendActions(for: .valueChanged)
+            }
+            do {
+                let nanoseconds = UInt64(self.viewModel.interval * 1_000_000_000)
+                try await Task.sleep(nanoseconds: nanoseconds)
+            } catch {
+                break
+            }
+            self.viewModel.updateInterval()
+        }
     }
 
     private func setupSubscriptions() {
